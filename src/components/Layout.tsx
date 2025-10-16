@@ -1,7 +1,6 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import logoSvg from "../assets/logo.svg";
-import { getCurrentVersion } from "../services/updateService";
 import { CursorService } from "../services/cursorService";
 
 interface LayoutProps {
@@ -10,12 +9,6 @@ interface LayoutProps {
 
 export const Layout: React.FC<LayoutProps> = ({ children }) => {
   const location = useLocation();
-  const [version, setVersion] = useState<string>("");
-
-  useEffect(() => {
-    // 获取当前版本号
-    getCurrentVersion().then(setVersion);
-  }, []);
 
   const handleOpenLogDirectory = async () => {
     try {
@@ -30,8 +23,6 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
     { path: "/machine-id", label: "Machine ID 管理", icon: "🔧" },
     { path: "/auth-check", label: "授权检查", icon: "🔐" },
     { path: "/token-manage", label: "Token 管理", icon: "🎫" },
-    { path: "/auto-register", label: "自动注册", icon: "📝" },
-    { path: "/virtual-card", label: "生成虚拟卡", icon: "💳" },
   ];
 
   return (
@@ -111,9 +102,6 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
               </p>
               <p className="mt-1">
                 © 2025 Cursor Manager. 仅供学习研究使用。
-                {version && (
-                  <span className="ml-2 text-gray-400">v{version}</span>
-                )}
               </p>
             </div>
           </div>

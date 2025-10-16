@@ -10,7 +10,9 @@ use chrono;
 use machine_id::{BackupInfo, MachineIdRestorer, MachineIds, ResetResult, RestoreResult};
 use rand::{Rng, distributions::Alphanumeric};
 use regex::Regex;
-use reqwest;
+// use reqwest;
+use wreq::Client;
+use wreq_util::Emulation;
 use serde::{Deserialize, Serialize};
 use std::env;
 use std::fs;
@@ -1233,7 +1235,7 @@ async fn cancel_subscription_failed(app: tauri::AppHandle) -> Result<(), String>
 async fn get_bind_card_url_internal(
     workos_cursor_session_token: String,
 ) -> Result<String, String> {
-    use reqwest::header::{HeaderMap, HeaderValue, COOKIE};
+    use wreq::header::{HeaderMap, HeaderValue, COOKIE};
 
     log_info!("🔄 Fetching bind card URL from Cursor API...");
 
@@ -1255,17 +1257,29 @@ async fn get_bind_card_url_internal(
     });
 
     // 创建 HTTP 客户端
-    let client = reqwest::Client::builder()
+    // let client = reqwest::Client::builder()
+    //     .timeout(std::time::Duration::from_secs(30))
+    //     .build()
+    //     .map_err(|e| format!("Failed to create HTTP client: {}", e))?;
+
+    let client = Client::builder()
+        .emulation(Emulation::Chrome141) // 这里是关键！选择模拟 Chrome 141
         .timeout(std::time::Duration::from_secs(30))
         .build()
         .map_err(|e| format!("Failed to create HTTP client: {}", e))?;
+
+    println!("Sending request with impersonated Chrome 141 TLS fingerprint...");
+
+    // 将 JSON body 转换为字符串
+    let body_string = serde_json::to_string(&body)
+        .map_err(|e| format!("Failed to serialize body: {}", e))?;
 
     // 发送 POST 请求
     log_info!("📤 Sending POST request to https://cursor.com/api/checkout");
     let response = client
         .post("https://cursor.com/api/checkout")
         .headers(headers)
-        .json(&body)
+        .body(body_string)
         .send()
         .await
         .map_err(|e| format!("Failed to send request: {}", e))?;
@@ -1311,7 +1325,7 @@ async fn get_bind_card_url_internal(
 
 #[tauri::command]
 async fn get_bind_card_url(
-    app: tauri::AppHandle,
+    _app: tauri::AppHandle,
     workos_cursor_session_token: String,
 ) -> Result<serde_json::Value, String> {
     match get_bind_card_url_internal(workos_cursor_session_token).await {

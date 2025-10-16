@@ -249,13 +249,6 @@ def setup_config(translator=None):
                 'product_json_path': os.path.join(cursor_dir, "resources/app/product.json") if cursor_dir else ""
             }
 
-        # Add tempmail_plus configuration
-        default_config['TempMailPlus'] = {
-            'enabled': 'false',
-            'email': '',
-            'epin': ''
-        }
-
         # Read existing configuration and merge
         if os.path.exists(config_file):
             config.read(config_file, encoding='utf-8')
